@@ -1,6 +1,11 @@
-import { useState } from "react";
-import "./App.css";
-import { submitForm } from "./services/api";
+import { useState, useEffect } from "react";
+
+import {
+  submitForm,
+  getCourses,
+  getBatches,
+  getSettings,
+} from "./services/api";
 
 function App() {
   const initialForm = {
@@ -17,8 +22,26 @@ function App() {
 
   const [formData, setFormData] = useState(initialForm);
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
+  const [courses, setCourses] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [settings, setSettings] = useState({});
+  useEffect(() => {
+    loadData();
+  }, []);
+  
+  async function loadData() {
+    try {
+      const courseData = await getCourses();
+      const batchData = await getBatches();
+      const settingsData = await getSettings();
+  
+      setCourses(courseData);
+      setBatches(batchData);
+      setSettings(settingsData);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
+  }const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     setFormData((prev) => ({
@@ -90,14 +113,22 @@ function App() {
         </p>
 
         <form onSubmit={handleSubmit}>
-        <label>Full Name *</label>
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="Enter Full Name"
-          />
+        <label>Course *</label>
+
+<select
+  name="course"
+  value={formData.course}
+  onChange={handleChange}
+>
+  <option value="">Select Course</option>
+
+  {courses.map((course, index) => (
+    <option key={index} value={course}>
+      {course}
+    </option>
+  ))}
+
+</select>
 
           <label>Mobile Number *</label>
           <input
@@ -126,14 +157,22 @@ function App() {
             placeholder="Enter Course Name"
           />
 
-          <label>Batch with Start Date *</label>
-          <input
-            type="text"
-            name="batch"
-            value={formData.batch}
-            onChange={handleChange}
-            placeholder="Example : CET Crash Course - 15 July 2026"
-          />
+<label>Batch *</label>
+
+<select
+  name="batch"
+  value={formData.batch}
+  onChange={handleChange}
+>
+  <option value="">Select Batch</option>
+
+  {batches.map((batch, index) => (
+    <option key={index} value={batch}>
+      {batch}
+    </option>
+  ))}
+
+</select>
 
           <label>Request Type *</label>
 
