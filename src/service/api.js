@@ -53,7 +53,13 @@ export async function getBatches() {
 // --------------------
 
 export async function getSettings() {
-  const response = await fetch(`${API_URL}?action=settings`);
+    return {};
+  }export async function trackTicket(ticket) {
 
-  return await response.json();
-}
+    const response = await fetch(
+      `${API_URL}?action=track&ticket=${ticket}`
+    );
+  
+    return await response.json();
+  
+  }

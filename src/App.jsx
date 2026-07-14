@@ -1,11 +1,14 @@
+import saarthiLogo from "./assets/saarthi.png";
+import shikshakLogo from "./assets/shikshak.png";
 import { useState, useEffect } from "react";
+import "./App.css";
 
 import {
   submitForm,
   getCourses,
   getBatches,
-  getSettings,
-} from "./services/api";
+  trackTicket,
+} from "./service/api";
 
 function App() {
   const initialForm = {
@@ -24,24 +27,25 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
-  const [settings, setSettings] = useState({});
+  const [page, setPage] = useState("home");
+  const [ticketId, setTicketId] = useState("");
+  const [ticketResult, setTicketResult] = useState(null);
+const [searchLoading, setSearchLoading] = useState(false);
+
   useEffect(() => {
     loadData();
   }, []);
-  
+
   async function loadData() {
     try {
-      const courseData = await getCourses();
-      const batchData = await getBatches();
-      const settingsData = await getSettings();
-  
-      setCourses(courseData);
-      setBatches(batchData);
-      setSettings(settingsData);
-    } catch (error) {
-      console.error("Failed to load data:", error);
+      setCourses(await getCourses());
+      setBatches(await getBatches());
+    } catch (err) {
+      console.error(err);
     }
-  }const handleChange = (e) => {
+  }
+
+  const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     setFormData((prev) => ({
@@ -52,29 +56,97 @@ function App() {
 
   const validate = () => {
     if (!formData.fullName.trim()) return "Enter Full Name";
-
     if (!/^[0-9]{10}$/.test(formData.mobile))
       return "Enter Valid Mobile Number";
-
     if (
       !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.gmail)
     )
       return "Enter Valid Gmail";
-
     if (!formData.course) return "Select Course";
-
-    if (!formData.batch) return "Enter Batch";
-
+    if (!formData.batch) return "Select Batch";
     if (!formData.requestType) return "Select Request Type";
-
     if (!formData.userCategory) return "Select User Category";
-
     if (!formData.remark.trim()) return "Enter Remark";
-
     return "";
   };
+  async function handleTrackTicket() {
+
+    if (!ticketId.trim()) {
+      alert("Enter Ticket ID");
+      return;
+    }
+  
+    try {
+      setSearchLoading(true);
+  
+      const result = await trackTicket(ticketId);
+  
+      setTicketResult(result);
+  
+    } catch (err) {
+      console.error(err);
+      alert("Unable to fetch ticket.");
+    } finally {
+      setSearchLoading(false);
+    }
+  
+  }
 
   const handleSubmit = async (e) => {
+    async function handleTrackTicket() {
+
+      if (!ticketId.trim()) {
+        alert("Enter Ticket ID");
+        return;
+      }
+    
+      try {
+        setSearchLoading(true);
+    
+        const result = await trackTicket(ticketId);
+    
+        setTicketResult(result);
+    
+      } catch (err) {
+        console.error(err);
+        alert("Unable to fetch ticket.");
+      } finally {
+        setSearchLoading(false);
+      }
+    }
+    
+    const handleSubmit = async (e) => {
+    
+      e.preventDefault();
+    
+      const error = validate();
+    
+      if (error) {
+        alert(error);
+        return;
+      }
+    
+      try {
+    
+        setSearchLoading(true);
+    
+        const result = await trackTicket(ticketId);
+    
+        setTicketResult(result);
+    
+      } catch (err) {
+    
+        console.error(err);
+    
+        alert("Unable to fetch ticket.");
+    
+      } finally {
+    
+        setSearchLoading(false);
+    
+      }
+    
+    }
     e.preventDefault();
 
     const error = validate();
@@ -102,126 +174,240 @@ function App() {
 
   return (
     <div className="container">
+
+      <div className="topbar">
+
+        <div className="brand-name">
+          Saarthi & Shikshak ERP
+        </div>
+
+        <div className="menu">
+        <button
+  type="button"
+  className="menu-btn"
+  onClick={() => setPage("home")}
+>
+  🏠 Home
+</button>
+
+<button
+  type="button"
+  className="menu-btn"
+  onClick={() => setPage("track")}
+>
+  🎫 Track Ticket
+</button>
+
+<button
+  type="button"
+  className="menu-btn"
+  onClick={() =>
+    window.open("https://wa.me/919680035009", "_blank")
+  }
+>
+  💬 WhatsApp
+</button>
+        </div>
+
+      </div>
+
       <div className="card">
 
-        <div className="logo">🎓</div>
+        <div className="header">
 
-        <h1>Saarthi Academy</h1>
+          <div className="brand-logos">
+            <img
+              className="saarthi-logo"
+              src={saarthiLogo}
+              alt="Saarthi Academy"
+            />
 
-        <p className="subtitle">
-          Course Access Verification Portal
-        </p>
+            <img
+              className="shikshak-logo"
+              src={shikshakLogo}
+              alt="Shikshak"
+            />
+          </div>
 
-        <form onSubmit={handleSubmit}>
-        <label>Course *</label>
+          <h1>Saarthi & Shikshak</h1>
 
-<select
-  name="course"
-  value={formData.course}
-  onChange={handleChange}
+          <p className="subtitle">
+            Student Management Portal
+          </p>
+
+          <p className="tagline">
+            Access Verification • Student Support • Ticket Management
+          </p>
+
+        </div>
+
+{page === "home" && (
+        <form onSubmit={handleSubmit} className="form-grid">
+        <div>
+  <label>Full Name *</label>
+  <input
+    type="text"
+    name="fullName"
+    value={formData.fullName}
+    onChange={handleChange}
+    placeholder="Enter Full Name"
+  />
+</div>
+
+<div>
+  <label>Mobile Number *</label>
+  <input
+    type="text"
+    name="mobile"
+    value={formData.mobile}
+    onChange={handleChange}
+    placeholder="Enter Mobile Number"
+  />
+</div>
+
+<div>
+  <label>Gmail ID *</label>
+  <input
+    type="email"
+    name="gmail"
+    value={formData.gmail}
+    onChange={handleChange}
+    placeholder="Enter Gmail ID"
+  />
+</div>
+
+<div>
+  <label>Course *</label>
+  <select
+    name="course"
+    value={formData.course}
+    onChange={handleChange}
+  >
+    <option value="">Select Course</option>
+    {courses.map((course) => (
+      <option key={course} value={course}>
+        {course}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div>
+  <label>Batch *</label>
+  <select
+    name="batch"
+    value={formData.batch}
+    onChange={handleChange}
+  >
+    <option value="">Select Batch</option>
+    {batches.map((batch) => (
+      <option key={batch} value={batch}>
+        {batch}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div>
+  <label>Request Type *</label>
+  <select
+    name="requestType"
+    value={formData.requestType}
+    onChange={handleChange}
+  >
+    <option value="">Select Request Type</option>
+    <option>🆕 New Access</option>
+    <option>🔄 Validity Extend</option>
+    <option>🔁 Batch Transfer</option>
+    <option>❓ Other</option>
+  </select>
+</div>
+
+<div>
+  <label>User Category *</label>
+  <select
+    name="userCategory"
+    value={formData.userCategory}
+    onChange={handleChange}
+  >
+    <option value="">Select User Category</option>
+    <option>👨‍💻 Online Student</option>
+    <option>🏫 Offline Enrolled Student</option>
+    <option>❓ Other</option>
+  </select>
+</div>
+
+<div>
+  <label>Upload Screenshot (Optional)</label>
+  <input
+    type="file"
+    name="screenshot"
+    onChange={handleChange}
+  />
+</div>
+
+<div className="full-width">
+  <label>Remark *</label>
+  <textarea
+    rows="5"
+    name="remark"
+    value={formData.remark}
+    onChange={handleChange}
+    placeholder="Describe your request..."
+  />
+</div>
+
+<div className="full-width">
+  <button type="submit" disabled={loading}>
+    {loading ? "Submitting..." : "Submit Request"}
+  </button>
+</div>
+
+</form>
+)}
+{page === "track" && (
+
+<div className="track-card">
+
+<h2>🎫 Track Your Ticket</h2>
+
+<input
+  type="text"
+  placeholder="Enter Ticket ID"
+  value={ticketId}
+  onChange={(e) => setTicketId(e.target.value)}
+/>
+
+<button
+  type="button"
+  onClick={handleTrackTicket}
 >
-  <option value="">Select Course</option>
+  {searchLoading ? "Searching..." : "Search Ticket"}
+</button>
 
-  {courses.map((course, index) => (
-    <option key={index} value={course}>
-      {course}
-    </option>
-  ))}
+{ticketResult && (
 
-</select>
+<div className="ticket-result">
 
-          <label>Mobile Number *</label>
-          <input
-            type="text"
-            name="mobile"
-            value={formData.mobile}
-            onChange={handleChange}
-            placeholder="Enter Mobile Number"
-          />
+<h3>🎫 Ticket Status</h3>
 
-          <label>Gmail ID *</label>
-          <input
-            type="email"
-            name="gmail"
-            value={formData.gmail}
-            onChange={handleChange}
-            placeholder="Enter Gmail ID"
-          />
+<p><strong>Ticket :</strong> {ticketResult.ticket}</p>
 
-          <label>Course *</label>
-          <input
-            type="text"
-            name="course"
-            value={formData.course}
-            onChange={handleChange}
-            placeholder="Enter Course Name"
-          />
+<p><strong>Name :</strong> {ticketResult.name}</p>
 
-<label>Batch *</label>
+<p><strong>Course :</strong> {ticketResult.course}</p>
 
-<select
-  name="batch"
-  value={formData.batch}
-  onChange={handleChange}
->
-  <option value="">Select Batch</option>
+<p><strong>Batch :</strong> {ticketResult.batch}</p>
 
-  {batches.map((batch, index) => (
-    <option key={index} value={batch}>
-      {batch}
-    </option>
-  ))}
+<p><strong>Status :</strong> {ticketResult.status}</p>
 
-</select>
+</div>
 
-          <label>Request Type *</label>
+)}
 
-          <select
-            name="requestType"
-            value={formData.requestType}
-            onChange={handleChange}
-          >
-            <option value="">Select Request Type</option>
-            <option>🆕 New Access</option>
-            <option>🔄 Validity Extend</option>
-            <option>🔁 Batch Transfer</option>
-            <option>❓ Other</option>
-          </select>
+</div>
 
-          <label>User Category *</label>
-
-          <select
-            name="userCategory"
-            value={formData.userCategory}
-            onChange={handleChange}
-          >
-            <option value="">Select User Category</option>
-            <option>👨‍💻 Online Student</option>
-            <option>🏫 Offline Enrolled Student</option>
-            <option>❓ Other</option>
-          </select>
-
-          <label>Upload Screenshot (Optional)</label>
-
-          <input
-            type="file"
-            name="screenshot"
-            onChange={handleChange}
-          />
-
-          <label>Remark *</label>
-
-          <textarea
-            rows="5"
-            name="remark"
-            value={formData.remark}
-            onChange={handleChange}
-            placeholder="Describe your request..."
-          ></textarea>
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Submitting..." : "Submit Request"}
-          </button>        </form>
+)}
 
 </div>
 </div>
