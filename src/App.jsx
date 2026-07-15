@@ -349,12 +349,12 @@ const [searchLoading, setSearchLoading] = useState(false);
 <div className="full-width">
   <label>Remark *</label>
   <textarea
-    rows="5"
-    name="remark"
-    value={formData.remark}
-    onChange={handleChange}
-    placeholder="Describe your request..."
-  />
+  rows="5"
+  name="remark"
+  value={formData.remark}
+  onChange={handleChange}
+  placeholder="कृपया वह दिनांक लिखें, जिस तक आप इस कोर्स की ऑनलाइन वैधता चाहते हैं। (उदाहरण: 31 दिसम्बर 2026)"
+></textarea>
 </div>
 
 <div className="full-width">
